@@ -19,8 +19,14 @@ import './style.css';
 
 const EXTENSION_NAME = 'QRBuilder';
 
-// Grab ST runtime functions via the official webpackIgnore pattern
+// Grab ST runtime functions via the official webpackIgnore pattern.
+// If this fails (e.g. ST internal structure change), generateQuietPrompt will be null
+// and the AI tab will show a disabled state with a meaningful message.
 const generateQuietPrompt = await importFromUrl('/script.js', 'generateQuietPrompt');
+
+if (!generateQuietPrompt) {
+    console.warn('[QRBuilder] Could not import generateQuietPrompt from /script.js. AI generation will be unavailable. This usually means SillyTavern\'s internal API has changed.');
+}
 
 // All state/settings come from the ST global — no separate imports needed
 function getSTContext() {
@@ -28,15 +34,25 @@ function getSTContext() {
 }
 
 function loadSettings() {
-    const { extensionSettings } = getSTContext();
+    const { extensionSettings, saveSettingsDebounced } = getSTContext();
+    let needsSave = false;
+
     if (!extensionSettings[EXTENSION_NAME]) {
         extensionSettings[EXTENSION_NAME] = {};
+        needsSave = true;
     }
+
     const defaults = { enabled: true };
     for (const [k, v] of Object.entries(defaults)) {
         if (extensionSettings[EXTENSION_NAME][k] === undefined) {
             extensionSettings[EXTENSION_NAME][k] = v;
+            needsSave = true;
         }
+    }
+
+    // Persist defaults to ST's settings file on first install
+    if (needsSave) {
+        saveSettingsDebounced();
     }
 }
 

@@ -3,15 +3,11 @@ const TerserPlugin = require('terser-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
-    // Emit as ES module — ST loads extensions via import(), so the browser
-    // resolves /scripts/extensions.js and /script.js at runtime, not build time
+    // ES module output (ST loads extensions via import())
+    // topLevelAwait: required for `await importFromUrl(...)` at module scope
     experiments: {
         outputModule: true,
-    },
-    externalsType: 'module',
-    externals: {
-        '/scripts/extensions.js': '/scripts/extensions.js',
-        '/script.js': '/script.js',
+        topLevelAwait: true,
     },
     entry: path.join(__dirname, 'src/index.js'),
     output: {

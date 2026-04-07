@@ -97,7 +97,8 @@ export default function AIChat({ generateQuietPrompt, onApplyScript, onApplyLabe
                     </div>
                     {!isReady && (
                         <div style={{ fontSize: 12, color: '#fbbf24', marginTop: 8 }}>
-                            ⚠ Connect a model in SillyTavern first
+                            ⚠ AI generation unavailable — SillyTavern's generation API could not be loaded.
+                            Check that ST is running and a model is connected.
                         </div>
                     )}
                     <div className="qrb-chips">
