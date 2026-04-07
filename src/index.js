@@ -72,6 +72,8 @@ function createPanel() {
     panel.addEventListener('click', e => e.stopPropagation());
 
     // Block ST pointer events while panel is open (BotBrowser pattern)
+    // Stored on element so closePanel can always restore even if JS throws
+    document.body.dataset.qrbPointerGuard = 'active';
     document.body.style.pointerEvents = 'none';
     overlay.style.pointerEvents = 'all';
     panel.style.pointerEvents = 'all';
@@ -88,11 +90,17 @@ function closePanel() {
     panel.classList.add('qrb-closing');
 
     setTimeout(() => {
-        if (reactRoot) { reactRoot.render(null); reactRoot = null; }
-        overlay.remove();
-        panel.remove();
-        document.body.style.pointerEvents = '';
-        console.log('[QRBuilder] Panel closed');
+        try {
+            // unmount before removing from DOM (React 18 explicit cleanup)
+            if (reactRoot) { reactRoot.unmount(); reactRoot = null; }
+        } finally {
+            // Always restore ST interactivity — even if unmount throws
+            overlay.remove();
+            panel.remove();
+            delete document.body.dataset.qrbPointerGuard;
+            document.body.style.pointerEvents = '';
+            console.log('[QRBuilder] Panel closed');
+        }
     }, 200);
 }
 

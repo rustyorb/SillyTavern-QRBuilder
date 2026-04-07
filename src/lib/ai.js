@@ -136,8 +136,8 @@ export async function generateWithST(messages, generateQuietPrompt, onToken) {
 
     const prompt = buildPrompt(messages);
 
-    // generateQuietPrompt is non-streaming but fast — simulate streaming for UX
-    const result = await generateQuietPrompt({ quietPrompt: prompt });
+    // generateQuietPrompt(string, quietToLoud, skipWIAN, ...) — plain string, not an object
+    const result = await generateQuietPrompt(prompt);
 
     if (!result) throw new Error('No response from model. Check your ST connection.');
 

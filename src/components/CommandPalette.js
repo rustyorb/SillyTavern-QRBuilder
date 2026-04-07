@@ -2,7 +2,7 @@ import { COMMANDS, CAT_COLORS, CATEGORIES } from '../data/commands.js';
 
 export default function CommandPalette({ onAddBlock, activeCategory, setActiveCategory }) {
     return (
-        <div className="qrb-panel-left">
+        <>
             <div className="qrb-palette-header">Commands</div>
             {CATEGORIES.map(cat => {
                 const color = CAT_COLORS[cat];
@@ -37,6 +37,6 @@ export default function CommandPalette({ onAddBlock, activeCategory, setActiveCa
                     </div>
                 );
             })}
-        </div>
+        </>
     );
 }

@@ -208,8 +208,18 @@ function splitContent(text) {
     return parts;
 }
 
-function formatText(text) {
+function escapeHtml(text) {
     return text
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function formatText(text) {
+    // Escape first so AI response can't inject raw HTML, then apply markdown transforms
+    return escapeHtml(text)
         .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
         .replace(/`(.+?)`/g, '<code style="background:rgba(0,0,0,0.3);padding:1px 5px;border-radius:3px;font-family:IBM Plex Mono,monospace;font-size:0.9em;">$1</code>')
         .replace(/\n/g, '<br/>')
