@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { streamChat, extractCodeBlocks, extractLabel } from '../lib/ai.js';
+import { generateWithST, extractCodeBlocks, extractLabel } from '../lib/ai.js';
 import { parseScript } from '../lib/parser.js';
 
 const SUGGESTIONS = [
@@ -11,44 +11,48 @@ const SUGGESTIONS = [
     'Generate a narrator description of the environment',
 ];
 
-export default function AIChat({ apiKey, model, onApplyScript, onApplyLabel }) {
+export default function AIChat({ generateQuietPrompt, onApplyScript, onApplyLabel }) {
     const [messages, setMessages] = useState([]);
     const [input, setInput]       = useState('');
-    const [streaming, setStreaming] = useState(false);
+    const [generating, setGenerating] = useState(false);
     const [error, setError]       = useState(null);
-    const messagesEndRef = useRef(null);
-    const textareaRef    = useRef(null);
+    const messagesEndRef          = useRef(null);
+    const textareaRef             = useRef(null);
 
     useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
     const handleSend = useCallback(async (text) => {
         const content = text || input.trim();
-        if (!content || streaming) return;
-        if (!apiKey) { setError('Set your OpenRouter API key in Settings.'); return; }
-        if (!model)  { setError('Select a model in Settings.'); return; }
+        if (!content || generating) return;
 
         setError(null);
         setInput('');
+
         const userMsg = { role: 'user', content };
         const newMessages = [...messages, userMsg];
         setMessages(newMessages);
-        setStreaming(true);
+        setGenerating(true);
+
+        // Add assistant placeholder
+        setMessages([...newMessages, { role: 'assistant', content: '' }]);
 
         try {
             let assistantContent = '';
-            const chatHistory = newMessages.map(m => ({ role: m.role, content: m.content }));
-            setMessages([...newMessages, { role: 'assistant', content: '' }]);
 
-            for await (const chunk of streamChat(chatHistory, apiKey, model)) {
-                assistantContent += chunk;
-                setMessages(prev => {
-                    const u = [...prev];
-                    u[u.length - 1] = { role: 'assistant', content: assistantContent };
-                    return u;
-                });
-            }
+            await generateWithST(
+                newMessages,
+                generateQuietPrompt,
+                (chunk) => {
+                    assistantContent += chunk;
+                    setMessages(prev => {
+                        const u = [...prev];
+                        u[u.length - 1] = { role: 'assistant', content: assistantContent };
+                        return u;
+                    });
+                }
+            );
 
-            // Auto-apply
+            // Auto-apply script + label from response
             const codeBlocks = extractCodeBlocks(assistantContent);
             const aiLabel    = extractLabel(assistantContent);
             if (codeBlocks.length > 0) {
@@ -56,23 +60,22 @@ export default function AIChat({ apiKey, model, onApplyScript, onApplyLabel }) {
                 onApplyScript(parsed.length > 0 ? parsed : [], codeBlocks[0]);
             }
             if (aiLabel) onApplyLabel(aiLabel);
-        } catch (err) {
-            if (err.name !== 'AbortError') {
-                setError(err.message);
-                setMessages(prev => prev.filter(m => m.content !== ''));
-            }
-        } finally {
-            setStreaming(false);
-        }
-    }, [input, messages, streaming, apiKey, model, onApplyScript, onApplyLabel]);
 
-    const handleKeyDown = (e) => {
+        } catch (err) {
+            setError(err.message);
+            setMessages(prev => prev.slice(0, -1)); // remove empty assistant placeholder
+        } finally {
+            setGenerating(false);
+        }
+    }, [input, messages, generating, generateQuietPrompt, onApplyScript, onApplyLabel]);
+
+    const handleKeyDown = e => {
         if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }
     };
 
-    const handleApplyFromMessage = (messageContent) => {
-        const codeBlocks = extractCodeBlocks(messageContent);
-        const lbl = extractLabel(messageContent);
+    const handleApplyFromMessage = msgContent => {
+        const codeBlocks = extractCodeBlocks(msgContent);
+        const lbl = extractLabel(msgContent);
         if (codeBlocks.length > 0) {
             const parsed = parseScript(codeBlocks[0]);
             onApplyScript(parsed.length > 0 ? parsed : [], codeBlocks[0]);
@@ -80,30 +83,31 @@ export default function AIChat({ apiKey, model, onApplyScript, onApplyLabel }) {
         if (lbl) onApplyLabel(lbl);
     };
 
+    const isReady = !!generateQuietPrompt;
+
     return (
         <div className="qrb-ai-chat">
-            {messages.length === 0 && !streaming ? (
+            {messages.length === 0 && !generating ? (
                 <div className="qrb-welcome">
                     <div className="qrb-welcome-icon">⚡</div>
                     <div className="qrb-welcome-title">AI Script Generator</div>
                     <div className="qrb-welcome-sub">
-                        Describe what you want your Quick Reply button to do. The AI will generate a complete, paste-ready STscript.
+                        Describe what you want your Quick Reply to do.<br/>
+                        Uses your currently connected model — no extra setup.
                     </div>
+                    {!isReady && (
+                        <div style={{ fontSize: 12, color: '#fbbf24', marginTop: 8 }}>
+                            ⚠ Connect a model in SillyTavern first
+                        </div>
+                    )}
                     <div className="qrb-chips">
                         {SUGGESTIONS.map((s, i) => (
-                            <button
-                                key={i}
-                                className="qrb-chip"
+                            <button key={i} className="qrb-chip"
                                 onClick={() => handleSend(s)}
-                                disabled={!apiKey || !model}
+                                disabled={!isReady}
                             >{s}</button>
                         ))}
                     </div>
-                    {(!apiKey || !model) && (
-                        <div style={{ fontSize: 12, color: '#fbbf24', marginTop: 8 }}>
-                            ⚠ Configure API key and model in Settings to get started
-                        </div>
-                    )}
                 </div>
             ) : (
                 <div className="qrb-messages">
@@ -111,7 +115,7 @@ export default function AIChat({ apiKey, model, onApplyScript, onApplyLabel }) {
                         <MessageBubble
                             key={i}
                             message={msg}
-                            streaming={streaming && i === messages.length - 1}
+                            generating={generating && i === messages.length - 1}
                             onApply={() => handleApplyFromMessage(msg.content)}
                         />
                     ))}
@@ -127,46 +131,40 @@ export default function AIChat({ apiKey, model, onApplyScript, onApplyLabel }) {
                     value={input}
                     onChange={e => setInput(e.target.value)}
                     onKeyDown={handleKeyDown}
-                    placeholder={streaming ? 'Generating…' : 'Describe what you want the button to do…'}
+                    placeholder={generating ? 'Generating…' : 'Describe what you want the button to do…'}
                     rows={1}
-                    disabled={streaming}
+                    disabled={generating}
                 />
-                <button
-                    className="qrb-send-btn"
+                <button className="qrb-send-btn"
                     onClick={() => handleSend()}
-                    disabled={!input.trim() || streaming || !apiKey}
+                    disabled={!input.trim() || generating || !isReady}
                 >
-                    {streaming ? '…' : '▲'}
+                    {generating ? '…' : '▲'}
                 </button>
             </div>
         </div>
     );
 }
 
-function MessageBubble({ message, streaming, onApply }) {
+function MessageBubble({ message, generating, onApply }) {
     const { role, content } = message;
     const isAssistant = role === 'assistant';
     return (
         <div className={`qrb-message ${role}`}>
             <div className="qrb-msg-avatar">{isAssistant ? '⚡' : '●'}</div>
             <div className="qrb-msg-body">
-                {isAssistant ? (
-                    <AssistantContent content={content} streaming={streaming} onApply={onApply} />
-                ) : (
-                    <p style={{ margin: 0 }}>{content}</p>
-                )}
+                {isAssistant
+                    ? <AssistantContent content={content} generating={generating} onApply={onApply} />
+                    : <p style={{ margin: 0 }}>{content}</p>
+                }
             </div>
         </div>
     );
 }
 
-function AssistantContent({ content, streaming, onApply }) {
-    if (!content && streaming) {
-        return (
-            <span className="qrb-thinking">
-                <span /><span /><span />
-            </span>
-        );
+function AssistantContent({ content, generating, onApply }) {
+    if (!content && generating) {
+        return <span className="qrb-thinking"><span /><span /><span /></span>;
     }
     const parts = splitContent(content);
     return (
@@ -176,16 +174,12 @@ function AssistantContent({ content, streaming, onApply }) {
                     return (
                         <div key={i} className="qrb-code-block">
                             <pre>{part.content}</pre>
-                            {!streaming && (
+                            {!generating && (
                                 <div className="qrb-code-actions">
-                                    <button
-                                        className="qrb-btn"
-                                        style={{ fontSize: 11, padding: '4px 10px' }}
+                                    <button className="qrb-btn" style={{ fontSize: 11, padding: '4px 10px' }}
                                         onClick={() => navigator.clipboard.writeText(part.content)}
                                     >Copy</button>
-                                    <button
-                                        className="qrb-btn success"
-                                        style={{ fontSize: 11, padding: '4px 10px' }}
+                                    <button className="qrb-btn success" style={{ fontSize: 11, padding: '4px 10px' }}
                                         onClick={onApply}
                                     >Apply →</button>
                                 </div>
@@ -193,13 +187,8 @@ function AssistantContent({ content, streaming, onApply }) {
                         </div>
                     );
                 }
-                return (
-                    <div
-                        key={i}
-                        style={{ marginBottom: 6 }}
-                        dangerouslySetInnerHTML={{ __html: formatText(part.content) }}
-                    />
-                );
+                return <div key={i} style={{ marginBottom: 6 }}
+                    dangerouslySetInnerHTML={{ __html: formatText(part.content) }} />;
             })}
         </div>
     );
@@ -209,13 +198,13 @@ function splitContent(text) {
     if (!text) return [];
     const parts = [];
     const re = /```[\w]*\s*\n?([\s\S]*?)```/g;
-    let lastIndex = 0, match;
-    while ((match = re.exec(text)) !== null) {
-        if (match.index > lastIndex) parts.push({ type: 'text', content: text.slice(lastIndex, match.index) });
-        parts.push({ type: 'code', content: match[1].trim() });
-        lastIndex = match.index + match[0].length;
+    let last = 0, m;
+    while ((m = re.exec(text)) !== null) {
+        if (m.index > last) parts.push({ type: 'text', content: text.slice(last, m.index) });
+        parts.push({ type: 'code', content: m[1].trim() });
+        last = m.index + m[0].length;
     }
-    if (lastIndex < text.length) parts.push({ type: 'text', content: text.slice(lastIndex) });
+    if (last < text.length) parts.push({ type: 'text', content: text.slice(last) });
     return parts;
 }
 

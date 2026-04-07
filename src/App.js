@@ -1,25 +1,20 @@
 import { useState, useCallback } from 'react';
 import { TEMPLATES } from './data/templates.js';
-import { uid, buildScript, parseScript } from './lib/parser.js';
+import { uid, buildScript } from './lib/parser.js';
 import CommandPalette from './components/CommandPalette.js';
 import Builder from './components/Builder.js';
 import AIChat from './components/AIChat.js';
 import OutputPanel from './components/OutputPanel.js';
-import SettingsModal from './components/SettingsModal.js';
 
-export default function App({ initialApiKey, initialModel, onClose, onSettingsSave }) {
-    const [apiKey, setApiKey] = useState(initialApiKey || '');
-    const [model, setModel] = useState(initialModel || '');
-    const [blocks, setBlocks] = useState([]);
-    const [label, setLabel] = useState('');
-    const [rawScript, setRawScript] = useState('');
-    const [activeTab, setActiveTab] = useState('ai');
+export default function App({ generateQuietPrompt, onClose }) {
+    const [blocks, setBlocks]             = useState([]);
+    const [label, setLabel]               = useState('');
+    const [rawScript, setRawScript]       = useState('');
+    const [activeTab, setActiveTab]       = useState('ai');
     const [activeCategory, setActiveCategory] = useState('Generation');
-    const [showSettings, setShowSettings] = useState(!initialApiKey);
-    const [showTemplates, setShowTemplates] = useState(false);
+    const [showTemplates, setShowTemplates]   = useState(false);
 
-    const scriptFromBlocks = blocks.length > 0 ? buildScript(blocks) : '';
-    const displayScript = rawScript || scriptFromBlocks;
+    const displayScript = rawScript || (blocks.length > 0 ? buildScript(blocks) : '');
 
     const addBlock = useCallback((cmd, category) => {
         setBlocks(prev => [...prev, { ...cmd, id: uid(), values: {}, category }]);
@@ -50,13 +45,13 @@ export default function App({ initialApiKey, initialModel, onClose, onSettingsSa
 
     const handleApplyScript = useCallback((parsedBlocks, rawText) => {
         if (parsedBlocks.length > 0) { setBlocks(parsedBlocks); setRawScript(''); }
-        else { setRawScript(rawText); }
+        else setRawScript(rawText);
         setActiveTab('builder');
     }, []);
 
-    const handleApplyLabel = useCallback((lbl) => setLabel(lbl), []);
+    const handleApplyLabel = useCallback(lbl => setLabel(lbl), []);
 
-    const loadTemplate = useCallback((t) => {
+    const loadTemplate = useCallback(t => {
         setBlocks(t.blocks.map(b => ({ ...b, id: uid() })));
         setRawScript('');
         setShowTemplates(false);
@@ -67,41 +62,26 @@ export default function App({ initialApiKey, initialModel, onClose, onSettingsSa
         setBlocks([]); setLabel(''); setRawScript('');
     }, []);
 
-    const handleSaveSettings = useCallback((newKey, newModel) => {
-        setApiKey(newKey);
-        setModel(newModel);
-        onSettingsSave(newKey, newModel);
-        setShowSettings(false);
-    }, [onSettingsSave]);
-
     return (
         <div className="qrb-app">
-            {/* Header */}
             <header className="qrb-header">
                 <div className="qrb-logo">QRB</div>
                 <div>
                     <div className="qrb-title">STscript QR Builder</div>
-                    <div className="qrb-subtitle">AI-powered Quick Reply composer</div>
+                    <div className="qrb-subtitle">Using your connected model · No extra config needed</div>
                 </div>
                 <div className="qrb-header-actions">
                     <button className="qrb-btn" onClick={() => setShowTemplates(t => !t)}>
                         📋 Templates
                     </button>
-                    <button className="qrb-btn danger" onClick={clearAll} disabled={!blocks.length && !rawScript && !label}>
+                    <button className="qrb-btn danger" onClick={clearAll}
+                        disabled={!blocks.length && !rawScript && !label}>
                         ✕ Clear
                     </button>
-                    <button
-                        className="qrb-btn"
-                        onClick={() => setShowSettings(true)}
-                        style={!apiKey ? { borderColor: 'rgba(251,191,36,0.5)', color: '#fbbf24' } : {}}
-                    >
-                        ⚙ {!apiKey ? 'Setup' : 'Settings'}
-                    </button>
-                    <button className="qrb-btn close-btn" onClick={onClose} title="Close">✕</button>
+                    <button className="qrb-btn close-btn" onClick={onClose} title="Close QR Builder">✕</button>
                 </div>
             </header>
 
-            {/* Templates bar */}
             {showTemplates && (
                 <div className="qrb-templates-bar">
                     {TEMPLATES.map(t => (
@@ -116,7 +96,6 @@ export default function App({ initialApiKey, initialModel, onClose, onSettingsSa
                 </div>
             )}
 
-            {/* Three panels */}
             <main className="qrb-main">
                 <aside className="qrb-panel-left">
                     <CommandPalette
@@ -142,8 +121,7 @@ export default function App({ initialApiKey, initialModel, onClose, onSettingsSa
                     </div>
                     {activeTab === 'ai' ? (
                         <AIChat
-                            apiKey={apiKey}
-                            model={model}
+                            generateQuietPrompt={generateQuietPrompt}
                             onApplyScript={handleApplyScript}
                             onApplyLabel={handleApplyLabel}
                         />
@@ -166,15 +144,6 @@ export default function App({ initialApiKey, initialModel, onClose, onSettingsSa
                     />
                 </aside>
             </main>
-
-            {showSettings && (
-                <SettingsModal
-                    apiKey={apiKey}
-                    model={model}
-                    onSave={handleSaveSettings}
-                    onClose={() => setShowSettings(false)}
-                />
-            )}
         </div>
     );
 }

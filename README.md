@@ -19,9 +19,11 @@
 
 ## What
 
-A native SillyTavern extension that gives you a full-screen, three-panel workspace for building STscript Quick Reply scripts — either by describing what you want in plain English (AI generates it), or by clicking commands together visually.
+A native SillyTavern extension — a full-screen, three-panel workspace for building STscript Quick Reply scripts.
 
-No separate tab. No copy-paste between windows. It lives inside ST, opens with a click, closes when you're done.
+Describe what you want in plain English and the AI writes it. Or click commands together visually. Uses **whatever model you already have connected in SillyTavern** — no API keys, no second configuration, no separate accounts.
+
+You're already set up. Just open it and go.
 
 ---
 
@@ -29,26 +31,26 @@ No separate tab. No copy-paste between windows. It lives inside ST, opens with a
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
-│  QRB  STscript QR Builder    📋 Templates  ✕ Clear  ⚙ Settings  ✕ │
+│  QRB  STscript QR Builder         📋 Templates   ✕ Clear        ✕  │
 ├──────────┬──────────────────────────────┬────────────────────────────┤
 │          │   ⚡ AI  │  🔧 Builder        │  Output                    │
 │ Commands │          ▼                    │                            │
-│          │  ┌─────────────────────────┐ │  Label: [📋 Summary      ] │
-│ Generation│  │ describe what you want  │ │                            │
-│  /gen    │  │ the button to do...     │ │  /messages 0-{{lastMsgId}} │
+│          │  ┌─────────────────────────┐ │  Label: [📝 Summary      ] │
+│ Generation│ │ using connected model   │ │                            │
+│  /gen    │  │ (no config needed)      │ │  /messages 0-{{lastMsgId}} │
 │  /genraw │  │                         │ │  | /trimtokens limit=3000  │
-│  /continue│  │  [AI streams response]  │ │  | /genraw lock=on [...]   │
-│  ...     │  │                         │ │  | /sys {{pipe}}            │
-│          │  │  ```stscript            │ │                            │
-│ Input/IO │  │  /messages 0-{{last..}} │ │  Trigger: [None         ▾] │
-│  /sendas │  │  | /genraw lock=on...   │ │                            │
-│  /sys    │  │  ```                    │ │  Blocks  Pipes  Chars      │
-│  /echo   │  │  [Copy] [Apply →]       │ │    4       3      187      │
-│  ...     │  └─────────────────────────┘ │                            │
-│          │                              │  [📋 Copy Script]          │
-│ Variables│  [  Describe button task...▲]│                            │
-│ Chat     │                              │                            │
-│ Flow     │                              │                            │
+│  /continue│ │  describe what you want │ │  | /genraw lock=on [...]   │
+│  ...     │  │  the button to do...    │ │  | /sys {{pipe}}            │
+│          │  │                         │ │                            │
+│ Input/IO │  │  [streams response]     │ │  Trigger: [None         ▾] │
+│  /sendas │  │                         │ │                            │
+│  /sys    │  │  ```stscript            │ │  Blocks  Pipes  Chars      │
+│  /echo   │  │  /messages 0-{{last..}} │ │    4       3      187      │
+│  ...     │  │  | /genraw lock=on...   │ │                            │
+│          │  │  ```                    │ │  [📋 Copy Script]          │
+│ Variables│  │  [Copy] [Apply →]       │ │                            │
+│ Chat     │  └─────────────────────────┘ │                            │
+│ Flow     │  [  Describe it...        ▲] │                            │
 │ Text     │                              │                            │
 │ Math     │                              │                            │
 └──────────┴──────────────────────────────┴────────────────────────────┘
@@ -60,20 +62,26 @@ No separate tab. No copy-paste between windows. It lives inside ST, opens with a
 
 | Feature | Description |
 |---------|-------------|
-| **AI Generation** | Describe in plain English → streaming STscript output |
+| **Zero config** | Uses your already-connected ST model. Open and go. |
+| **AI Generation** | Describe in plain English → STscript output |
 | **Visual Builder** | Click-to-add command blocks, inline field editing |
 | **Script Parser** | Paste any raw STscript → auto-converts to blocks |
-| **Templates** | 6 pre-built scripts (Summary, Plot Twist, Save & Delete, Turn Counter, Dice Roll, User Prompt) |
-| **OpenRouter** | Model-agnostic — use any LLM OpenRouter supports |
-| **Persistent Settings** | API key + model stored in ST's extension_settings |
-| **Full-Screen Panel** | Opens over ST with backdrop, closes cleanly |
-| **ST Native** | No separate tab or server required |
+| **Templates** | 6 pre-built scripts ready to customize |
+| **Full-Screen Panel** | Opens over ST, closes cleanly — no new tabs |
+| **ST Native** | Uses `generateQuietPrompt` from ST's official extension API |
 
 ---
 
 ## Installation
 
-### Option A: Clone into third-party
+### Option A: ST Extension Manager (recommended)
+
+In SillyTavern → Extensions → Install Extension:
+```
+https://github.com/rustyorb/SillyTavern-QRBuilder
+```
+
+### Option B: Clone and build
 
 ```bash
 cd SillyTavern/public/scripts/extensions/third-party
@@ -83,21 +91,17 @@ npm install
 npm run build
 ```
 
-### Option B: ST Extension Manager
-
-Install URL: `https://github.com/rustyorb/SillyTavern-QRBuilder`
-
 ---
 
 ## Usage
 
-1. Click the **`</>`** icon in ST's left navigation panel
-2. Or open **Extensions → QR Builder → Open QR Builder**
-3. Hit **⚙ Setup** → enter your [OpenRouter API key](https://openrouter.ai/keys) → select a model
-4. **AI tab**: describe what you want → AI generates → click **Apply →**
-5. **Builder tab**: fine-tune blocks, reorder, edit fields
-6. Set a **Label**, choose a **Trigger**, click **📋 Copy Script**
-7. Paste into SillyTavern's Quick Reply extension
+1. Click the **`</>`** icon in ST's left navigation bar  
+   *(or Extensions → QR Builder → Open QR Builder)*
+2. **That's it** — the AI uses whatever model you already have connected
+3. Describe what you want → AI generates → **Apply →** to load blocks
+4. Fine-tune in the **Builder** tab
+5. Set a **Label**, optionally pick a **Trigger**, hit **📋 Copy Script**
+6. Paste into SillyTavern's Quick Reply extension
 
 ---
 
@@ -121,7 +125,6 @@ Install URL: `https://github.com/rustyorb/SillyTavern-QRBuilder`
 
 # Variables
 /setvar key=name [value]      — store local variable
-/getvar name                  — retrieve to pipe
 {{getvar::name}}              — inline macro
 
 # Flow
@@ -137,32 +140,48 @@ Install URL: `https://github.com/rustyorb/SillyTavern-QRBuilder`
 
 ---
 
-## Config
+## Templates Included
 
-Settings are stored in SillyTavern's `extension_settings.QRBuilder`:
+| Template | What it does |
+|----------|-------------|
+| 📝 Chat Summary | Grab all messages → trim → AI summarizes → narrator post |
+| 🌀 Plot Twist | Generate a dramatic story event for {{char}} |
+| 💾 Save & Delete | Save last message to a variable, delete it |
+| 🔢 Turn Counter | Track turns, trigger an event every 5 |
+| 🎲 Dice Roll | Roll d20, echo the result as a toast |
+| 💬 User Prompt | Ask user what happens next → generate response |
 
-```json
-{
-  "enabled": true,
-  "apiKey": "sk-or-...",
-  "model": "anthropic/claude-3-haiku"
-}
+---
+
+## How AI Generation Works
+
+This extension uses [`generateQuietPrompt`](https://docs.sillytavern.app/for-contributors/writing-extensions/) from SillyTavern's official extension API. It calls your currently connected model silently in the background — the same connection you use for everything else in ST.
+
 ```
+Your ST connection (OpenAI / Claude / local / any)
+         ↓
+generateQuietPrompt(prompt)    ← official ST extension API
+         ↓
+STscript Quick Reply script
+```
+
+**No OpenRouter account. No API keys. No separate model selection.** If ST is talking to a model, so is QR Builder.
 
 ---
 
 ## Development
 
 ```bash
-# Watch mode (auto-rebuild on save)
+# Watch mode — auto-rebuild on save
 npm run dev
 
 # Production build
 npm run build
 ```
 
-Built on the official [SillyTavern React Extension Template](https://github.com/SillyTavern/Extension-ReactTemplate).  
-Stack: React 18 + Webpack + Babel → single `dist/index.js` bundle.
+Built on the official [SillyTavern Extension-ReactTemplate](https://github.com/SillyTavern/Extension-ReactTemplate).  
+Stack: React 18 + Webpack 5 (ES module output) + Babel → `dist/index.js`.  
+ST API reference: [docs.sillytavern.app/for-contributors/writing-extensions](https://docs.sillytavern.app/for-contributors/writing-extensions/)
 
 ---
 
