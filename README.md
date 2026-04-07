@@ -97,11 +97,16 @@ npm run build
 
 1. Click the **`</>`** icon in ST's left navigation bar  
    *(or Extensions → QR Builder → Open QR Builder)*
-2. **That's it** — the AI uses whatever model you already have connected
-3. Describe what you want → AI generates → **Apply →** to load blocks
-4. Fine-tune in the **Builder** tab
-5. Set a **Label**, optionally pick a **Trigger**, hit **📋 Copy Script**
-6. Paste into SillyTavern's Quick Reply extension
+2. **AI tab** — describe what you want the button to do, press ↑  
+   The AI generates the script and it auto-applies to the builder
+3. Optionally fine-tune blocks in the **Builder** tab
+4. In the **Output** panel on the right:
+   - Set a **Label** (button text)
+   - Pick an **Auto-Execute Trigger** if you want it to fire automatically
+   - Select the **Target QR Set** from the dropdown
+   - Hit **⚡ Save to Quick Replies**
+
+That's it. The script is injected directly into your QR set — no copy, no paste, no switching panels.
 
 ---
 
