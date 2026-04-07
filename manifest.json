@@ -1,0 +1,12 @@
+{
+    "display_name": "QR Builder",
+    "loading_order": 10,
+    "requires": [],
+    "optional": [],
+    "js": "dist/index.js",
+    "css": "dist/style.css",
+    "author": "RüstyÖrb",
+    "version": "1.0.0",
+    "homePage": "https://github.com/rustyorb/SillyTavern-QRBuilder",
+    "auto_update": true
+}
