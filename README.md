@@ -13,21 +13,21 @@
   ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
 ```
 
-> *Describe it. Generate it. Paste it. Done.*
+> 🔮 *Describe it. Generate it. Paste it. Done.*
 
 ---
 
-## What
+## 🎯 What is this?
 
-A native SillyTavern extension — a full-screen, three-panel workspace for building STscript Quick Reply scripts.
+A native SillyTavern extension — a **full-screen**, **three-panel** workspace for building STscript Quick Reply scripts effortlessly.
 
 Describe what you want in plain English and the AI writes it. Or click commands together visually. Uses **whatever model you already have connected in SillyTavern** — no API keys, no second configuration, no separate accounts.
 
-You're already set up. Just open it and go.
+You're already set up. Just open it and go! 🚀
 
 ---
 
-## How It Works
+## 🏗️ How It Works
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -58,49 +58,40 @@ You're already set up. Just open it and go.
 
 ---
 
-## Features
+## ✨ Features
 
 | Feature | Description |
 |---------|-------------|
-| **Zero config** | Uses your already-connected ST model. Open and go. |
-| **AI Generation** | Describe in plain English → STscript output |
-| **Visual Builder** | Click-to-add command blocks, inline field editing |
-| **Script Parser** | Paste any raw STscript → auto-converts to blocks |
-| **Templates** | 6 pre-built scripts ready to customize |
-| **Full-Screen Panel** | Opens over ST, closes cleanly — no new tabs |
-| **ST Native** | Uses `generateQuietPrompt` from ST's official extension API |
+| 🔌 **Zero config** | Uses your already-connected ST model. Open and go. |
+| ⚡ **AI Generation** | Describe in plain English → perfectly formatted STscript comes out. |
+| 🧩 **Visual Builder** | Click-to-add command blocks, inline field editing. |
+| 📜 **Script Parser** | Paste any raw STscript and it auto-converts into visual blocks. |
+| 📚 **Templates** | 6 pre-built scripts ready to customize and deploy. |
+| 🖥️ **Full-Screen Panel** | Opens cleanly over ST, closes smoothly — no new tabs required. |
+| 🛠️ **ST Native** | Hooks into the system natively via ST's official extension API. |
 
 ---
 
-## Installation
+## 📦 Installation
 
-### Option A: ST Extension Manager (recommended)
+> [!TIP]
+> The extension comes pre-built. It requires no terminal commands or NPM installs on your end.
 
-In SillyTavern → Extensions → Install Extension:
+### The Easy Way (ST Extension Manager)
+In SillyTavern → Extensions → Install Extension, paste this URL:
 ```
 https://github.com/rustyorb/SillyTavern-QRBuilder
 ```
 
-### Option B: Clone and build
-
-```bash
-cd SillyTavern/public/scripts/extensions/third-party
-git clone https://github.com/rustyorb/SillyTavern-QRBuilder
-cd SillyTavern-QRBuilder
-npm install
-npm run build
-```
-
 ---
 
-## Usage
+## 🕹️ Usage
 
 1. Click the **`</>`** icon in ST's left navigation bar  
-   *(or Extensions → QR Builder → Open QR Builder)*
-2. **AI tab** — describe what you want the button to do, press ↑  
-   The AI generates the script and it auto-applies to the builder
-3. Optionally fine-tune blocks in the **Builder** tab
-4. In the **Output** panel on the right:
+   *(or navigate to Extensions → QR Builder → Open QR Builder)*
+2. 🤖 **AI tab** — describe what you want the button to do, press ↑. The AI generates the script and it auto-applies to the builder!
+3. 🔧 Optionally fine-tune your blocks in the **Builder** tab.
+4. 📤 In the **Output** panel on the right:
    - Set a **Label** (button text)
    - Pick an **Auto-Execute Trigger** if you want it to fire automatically
    - Select the **Target QR Set** from the dropdown
@@ -110,34 +101,34 @@ That's it. The script is injected directly into your QR set — no copy, no past
 
 ---
 
-## STscript Reference Quick Card
+## 📖 STscript Reference Quick Card
 
-```
-# Chaining
+```stscript
+# 🔗 Chaining
 /cmd1 | /cmd2 | /cmd3        — pipe output between commands
 {{pipe}}                      — access previous command's output
 
-# Generation
+# 🧠 Generation
 /gen lock=on [prompt]         — full context gen (blocks input)
 /genraw lock=on [prompt]      — raw gen, no character context
 /continue                     — extend last AI message
 
-# I/O
+# 🗣️ I/O
 /echo severity=success [text] — toast notification
 /input [prompt]               — ask user, pipe their answer
 /popup large=on [text]        — blocking popup
 /sendas name={{char}} [text]  — speak as character
 
-# Variables
+# 🗃️ Variables
 /setvar key=name [value]      — store local variable
 {{getvar::name}}              — inline macro
 
-# Flow
+# 🛤️ Flow
 /if left={{pipe}} rule=eq right=5 {: /echo Match :}
 /times 5 {: /echo {{timesIndex}} :}
 /delay 1000                   — wait 1 second
 
-# Chat
+# 💬 Chat
 /messages 0-{{lastMessageId}} — get all messages
 /del 1                        — delete last message
 /sys [text]                   — narrator message
@@ -145,36 +136,41 @@ That's it. The script is injected directly into your QR set — no copy, no past
 
 ---
 
-## Templates Included
+## 🏷️ Templates Included
 
 | Template | What it does |
 |----------|-------------|
-| 📝 Chat Summary | Grab all messages → trim → AI summarizes → narrator post |
-| 🌀 Plot Twist | Generate a dramatic story event for {{char}} |
-| 💾 Save & Delete | Save last message to a variable, delete it |
-| 🔢 Turn Counter | Track turns, trigger an event every 5 |
-| 🎲 Dice Roll | Roll d20, echo the result as a toast |
-| 💬 User Prompt | Ask user what happens next → generate response |
+| 📝 **Chat Summary** | Grab all messages → trim → AI summarizes → narrator post |
+| 🌀 **Plot Twist** | Generate a dramatic story event for {{char}} |
+| 💾 **Save & Delete** | Save last message to a variable, delete it |
+| 🔢 **Turn Counter** | Track turns, trigger an event every 5 |
+| 🎲 **Dice Roll** | Roll d20, echo the result as a toast |
+| 💬 **User Prompt** | Ask user what happens next → generate response |
 
 ---
 
-## How AI Generation Works
+## 🧠 How AI Generation Works
 
-This extension uses [`generateQuietPrompt`](https://docs.sillytavern.app/for-contributors/writing-extensions/) from SillyTavern's official extension API. It calls your currently connected model silently in the background — the same connection you use for everything else in ST.
+> [!NOTE]
+> **No OpenRouter accounts. No API keys. No separate model selections.**
+
+This extension interfaces via `generateQuietPrompt` from SillyTavern's official extension API. It calls your currently connected model silently in the background — the exact same active connection you use for everything else in ST.
 
 ```
 Your ST connection (OpenAI / Claude / local / any)
          ↓
-generateQuietPrompt(prompt)    ← official ST extension API
+generateQuietPrompt(prompt)    ← official ST internal API
          ↓
 STscript Quick Reply script
 ```
 
-**No OpenRouter account. No API keys. No separate model selection.** If ST is talking to a model, so is QR Builder.
+If your ST is talking to a model, QR Builder is talking to a model. Simple.
 
 ---
 
-## Development
+## 💻 Development
+
+Want to fork or modify the builder?
 
 ```bash
 # Watch mode — auto-rebuild on save
@@ -190,10 +186,10 @@ ST API reference: [docs.sillytavern.app/for-contributors/writing-extensions](htt
 
 ---
 
-## Author
+## 👨‍💻 Author
 
 **RüstyÖrb** — [@rustyorb](https://github.com/rustyorb)
 
 ---
 
-*Built because the QR editor in ST deserved better.*
+*Built because the QR editor in ST deserved better.* ✨
