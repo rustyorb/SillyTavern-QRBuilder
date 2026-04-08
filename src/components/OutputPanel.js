@@ -46,8 +46,8 @@ export default function OutputPanel({ blocks, label, setLabel, script }) {
 
     const handleSaveToQR = () => {
         setSaveError('');
+        const finalLabel = label.trim() || 'New QR Script';
         if (!displayScript) { setSaveError('No script to save.'); return; }
-        if (!label.trim()) { setSaveError('Enter a label first.'); return; }
 
         try {
             const api = window.quickReplyApi;
@@ -82,7 +82,7 @@ export default function OutputPanel({ blocks, label, setLabel, script }) {
 
             // Add the QR directly — this saves automatically
             qrSet.addQuickReply({
-                label: label.trim(),
+                label: finalLabel,
                 message: displayScript,
                 ...triggerFlags,
             });
@@ -158,8 +158,8 @@ export default function OutputPanel({ blocks, label, setLabel, script }) {
             <button
                 className={`qrb-save-btn${saved ? ' success' : ''}`}
                 onClick={handleSaveToQR}
-                disabled={!displayScript || !label.trim()}
-                title={!label.trim() ? 'Enter a label first' : 'Save directly to your Quick Reply set'}
+                disabled={!displayScript}
+                title="Save directly to your Quick Reply set"
             >
                 {saved ? '✓ Saved to Quick Replies!' : '⚡ Save to Quick Replies'}
             </button>
