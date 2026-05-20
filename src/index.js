@@ -173,11 +173,25 @@ function injectSettingsUI() {
 jQuery(async () => {
     console.log('[QRBuilder] Loading...');
     loadSettings();
-    injectSettingsUI();
-    addToolbarButton();
+
+    const { eventSource, event_types } = getSTContext();
+
+    const init = () => {
+        injectSettingsUI();
+        addToolbarButton();
+    };
+
+    // If DOM elements are already available, inject immediately; otherwise wait for APP_READY
+    if (document.getElementById('extensions_settings') || document.getElementById('rm_button_group_chats')) {
+        init();
+    } else {
+        eventSource.on(event_types.APP_READY, () => {
+            console.log('[QRBuilder] SillyTavern APP_READY, injecting UI');
+            init();
+        });
+    }
 
     // Listen for events via getContext() per docs
-    const { eventSource, event_types } = getSTContext();
     eventSource.on(event_types.CHAT_CHANGED, () => {
         console.log('[QRBuilder] Chat changed');
     });

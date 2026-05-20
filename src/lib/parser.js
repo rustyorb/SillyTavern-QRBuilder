@@ -3,6 +3,21 @@ import { COMMANDS } from '../data/commands.js';
 let _id = 0;
 export const uid = () => `blk_${++_id}_${Date.now()}`;
 
+function wrapArg(val) {
+  if (!val) return '';
+  val = String(val).trim();
+  if (val.startsWith('(') && val.endsWith(')')) return val;
+  if (!/\s/.test(val)) return val;
+  return `(${val})`;
+}
+
+function wrapPrompt(val) {
+  if (!val) return '';
+  val = String(val).trim();
+  if (val.startsWith('[') && val.endsWith(']')) return val;
+  return `[${val}]`;
+}
+
 /**
  * Build a raw STscript string from an array of block objects
  */
@@ -22,63 +37,63 @@ export function buildCommand(block) {
     case '/sysgen':
     case '/impersonate': {
       const lockStr = v.lock ? ' lock=on' : '';
-      return `${block.cmd}${lockStr} ${v.prompt || ''}`;
+      return `${block.cmd}${lockStr} ${wrapPrompt(v.prompt)}`;
     }
     case '/continue':
     case '/abort':
       return block.cmd;
     case '/return':
-      return `/return ${v.value || ''}`;
+      return `/return ${wrapArg(v.value)}`;
     case '/sendas': {
       const n = v.name || '{{char}}';
-      return `/sendas name=${n} ${v.text || ''}`;
+      return `/sendas name=${n} ${wrapArg(v.text)}`;
     }
     case '/sys':
     case '/comment':
     case '/send':
-      return `${block.cmd} ${v.text || '{{pipe}}'}`;
+      return `${block.cmd} ${wrapArg(v.text || '{{pipe}}')}`;
     case '/echo': {
       const sev = v.severity && v.severity !== 'info' ? ` severity=${v.severity}` : '';
-      return `/echo${sev} ${v.text || '{{pipe}}'}`;
+      return `/echo${sev} ${wrapArg(v.text || '{{pipe}}')}`;
     }
     case '/input': {
       let opts = '';
       if (v.rows && v.rows !== '1') opts += ` rows=${v.rows}`;
       if (v.large) opts += ' large=on';
       if (v.wide) opts += ' wide=on';
-      return `/input${opts} ${v.prompt || ''}`;
+      return `/input${opts} ${wrapArg(v.prompt)}`;
     }
     case '/popup': {
       let opts = '';
       if (v.large) opts += ' large=on';
       if (v.wide) opts += ' wide=on';
       if (v.okButton) opts += ` okButton="${v.okButton}"`;
-      return `/popup${opts} ${v.text || ''}`;
+      return `/popup${opts} ${wrapArg(v.text)}`;
     }
     case '/buttons':
-      return `/buttons labels=${v.labels || '["A","B"]'} ${v.text || ''}`;
+      return `/buttons labels=${v.labels || '["A","B"]'} ${wrapArg(v.text)}`;
     case '/setinput':
-      return `/setinput ${v.text || '{{pipe}}'}`;
+      return `/setinput ${wrapArg(v.text || '{{pipe}}')}`;
     case '/setvar': {
       const idx = v.index ? ` index=${v.index}` : '';
-      return `/setvar key=${v.key || 'name'}${idx} ${v.value || '{{pipe}}'}`;
+      return `/setvar key=${v.key || 'name'}${idx} ${wrapArg(v.value || '{{pipe}}')}`;
     }
     case '/getvar': {
       const idx = v.index ? ` index=${v.index}` : '';
-      return `/getvar${idx} ${v.name || ''}`;
+      return `/getvar${idx} ${wrapArg(v.name)}`;
     }
     case '/setglobalvar':
-      return `/setglobalvar key=${v.key || 'name'} ${v.value || ''}`;
+      return `/setglobalvar key=${v.key || 'name'} ${wrapArg(v.value)}`;
     case '/getglobalvar':
-      return `/getglobalvar ${v.name || ''}`;
+      return `/getglobalvar ${wrapArg(v.name)}`;
     case '/let':
-      return `/let ${v.name || 'x'} ${v.value || '0'}`;
+      return `/let ${wrapArg(v.name || 'x')} ${wrapArg(v.value || '0')}`;
     case '/addvar':
-      return `/addvar key=${v.key || 'name'} ${v.value || '1'}`;
+      return `/addvar key=${v.key || 'name'} ${wrapArg(v.value || '1')}`;
     case '/incvar':
-      return `/incvar ${v.name || ''}`;
+      return `/incvar ${wrapArg(v.name)}`;
     case '/flushvar':
-      return `/flushvar ${v.name || ''}`;
+      return `/flushvar ${wrapArg(v.name)}`;
     case '/del':
       return `/del ${v.count || '1'}`;
     case '/cut':
@@ -90,8 +105,8 @@ export function buildCommand(block) {
       return `/messages${n} ${v.range || '0-{{lastMessageId}}'}`;
     }
     case '/if': {
-      const l = v.left || '{{pipe}}';
-      const r = v.right || '';
+      const l = wrapArg(v.left || '{{pipe}}');
+      const r = wrapArg(v.right || '');
       const rule = v.rule || 'eq';
       const then = v.then || '';
       const el = v.else ? ` else={: ${v.else} :}` : '';
@@ -100,8 +115,8 @@ export function buildCommand(block) {
     case '/times':
       return `/times ${v.count || '5'} {: ${v.body || ''} :}`;
     case '/while': {
-      const l = v.left || '{{pipe}}';
-      const r = v.right || '';
+      const l = wrapArg(v.left || '{{pipe}}');
+      const r = wrapArg(v.right || '');
       const rule = v.rule || 'lt';
       return `/while left=${l} rule=${rule} right=${r}\n    {: ${v.body || ''} :}`;
     }
@@ -109,11 +124,11 @@ export function buildCommand(block) {
       return `/delay ${v.ms || '1000'}`;
     case '/trimtokens': {
       const dir = v.direction ? ` direction=${v.direction}` : '';
-      return `/trimtokens limit=${v.limit || '3000'}${dir} ${v.text || '{{pipe}}'}`;
+      return `/trimtokens limit=${v.limit || '3000'}${dir} ${wrapArg(v.text || '{{pipe}}')}`;
     }
     case '/trimstart':
     case '/trimend':
-      return `${block.cmd} ${v.text || '{{pipe}}'}`;
+      return `${block.cmd} ${wrapArg(v.text || '{{pipe}}')}`;
     case '/add':
     case '/sub':
     case '/mul':
@@ -288,7 +303,13 @@ function parseArgs(argString, cmdDef) {
     // Find the first text-type arg in the definition
     const textArg = cmdDef.args.find(a => a.type === 'text' && !values[a.key]);
     if (textArg) {
-      values[textArg.key] = remaining;
+      let cleanVal = remaining;
+      if (cleanVal.startsWith('(') && cleanVal.endsWith(')')) {
+        cleanVal = cleanVal.slice(1, -1).trim();
+      } else if (cleanVal.startsWith('[') && cleanVal.endsWith(']')) {
+        cleanVal = cleanVal.slice(1, -1).trim();
+      }
+      values[textArg.key] = cleanVal;
     }
   }
 

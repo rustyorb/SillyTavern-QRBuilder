@@ -103,7 +103,10 @@ Always structure responses as:
 - Default to {{char}} for character references
 - Use lock=on for generation commands
 - Chain with | and pass with {{pipe}}
-- Only use commands from the reference above`;
+- Only use commands from the reference above
+- **CRITICAL syntax rules**:
+  - ALL positional text/arguments containing spaces MUST be wrapped in parentheses \`(...)\`. For example: \`/popup (This is my popup text)\`, \`/setvar key=name (hello world)\`, \`/sys (Character wakes up)\`.
+  - ALL prompts for generation commands (\`/gen\`, \`/genraw\`, \`/sysgen\`, \`/impersonate\`) MUST be wrapped in square brackets \`[...]\`. For example: \`/genraw lock=on [Write a response]\`, \`/gen [Add detail]\`.`;
 
 /**
  * Build the full prompt for generateQuietPrompt from a conversation history.
@@ -136,8 +139,20 @@ export async function generateWithST(messages, generateQuietPrompt, onToken) {
 
     const prompt = buildPrompt(messages);
 
-    // generateQuietPrompt(string, quietToLoud, skipWIAN, ...) — plain string, not an object
-    const result = await generateQuietPrompt(prompt);
+    // Call generateQuietPrompt robustly to support both the modern object signature
+    // and older positional string signatures without warning or throwing.
+    let result;
+    try {
+        result = await generateQuietPrompt({ quietPrompt: prompt });
+    } catch (e) {
+        console.warn('[QRBuilder] Failed object-based generateQuietPrompt, falling back to positional string', e);
+        try {
+            result = await generateQuietPrompt(prompt);
+        } catch (err2) {
+            console.error('[QRBuilder] Critical failure in both generateQuietPrompt signatures', err2);
+            throw err2;
+        }
+    }
 
     if (!result) throw new Error('No response from model. Check your ST connection.');
 
